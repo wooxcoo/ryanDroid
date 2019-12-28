@@ -3,6 +3,7 @@ from app.model.baseModel import Base, dbSession
 import datetime
 from sqlalchemy import Column, Integer, DateTime, Boolean, Text
 
+
 class LoopspyTable(Base):
     """
     sql / access should be the same structure
@@ -18,19 +19,20 @@ class LoopspyTable(Base):
       `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       `SignalNumber` text NOT NULL,
-      `VOITHSignalNumber` text NOT NULL COMMENT 'text, ignore length current now',
-      `Area` text NOT NULL,
-      `Language1` text NOT NULL,
-      `Language2` text NOT NULL,
-      `Hierarchy` text NOT NULL,
-      `Chart` text,
-      `Block` text,
-      `Block_comment` text,
-      `Create_block_icon` text,
-      `Block_icon` text,
-      `OCM_possible` text,
-      `Block_type` text,
-      `Block_group` text,
+      `VOITHSignalNumber` text COMMENT 'text, ignore length current now',
+      `Area` text,
+      `Language1` text,
+      `Language2` text,
+      `hierarchy` text,
+      `chart` text,
+      `block` text,
+      `block_comment` text,
+      `create_block_icon` text,
+      `block_icon` text,
+      `ocm_possible` text,
+      `readback_allowed` text,   
+      `block_type` text,
+      `block_group` text,
       PRIMARY KEY (`id`),
       KEY `idx_created_at` (`created_at`),
       KEY `idx_updated_at` (`updated_at`)
@@ -41,27 +43,30 @@ class LoopspyTable(Base):
     created_at = Column(DateTime, default=datetime.datetime.now, comment='创建时间')
     updated_at = Column(DateTime, default=datetime.datetime.now, comment='修改时间')
     SignalNumber = Column(Text, nullable=False)
-    VOITHSignalNumber = Column(Text, nullable=False)
-    Area = Column(Text, nullable=False)
-    Language1 = Column(Text, nullable=False, default="")
-    Language2 = Column(Text, nullable=False, default="")
+    VOITHSignalNumber = Column(Text, nullable=True)
+    Area = Column(Text, nullable=True)
+    Language1 = Column(Text, nullable=True)
+    Language2 = Column(Text, nullable=True)
     # original data
-    Hierarchy = Column(Text, nullable=False)
-    Chart = Column(Text, nullable=True)
-    Block = Column(Text, nullable=True)
-    Block_comment = Column(Text, nullable=True)
-    Create_block_icon = Column(Text, nullable=True)
-    Block_icon = Column(Text, nullable=True)
-    OCM_possible = Column(Text, nullable=True)
-    Block_type = Column(Text, nullable=True)
-    Block_group = Column(Text, nullable=True)
+    hierarchy = Column(Text, nullable=True)
+    chart = Column(Text, nullable=True)
+    block = Column(Text, nullable=True)
+    block_comment = Column(Text, nullable=True)
+    create_block_icon = Column(Text, nullable=True)
+    block_icon = Column(Text, nullable=True)
+    ocm_possible = Column(Text, nullable=True)
+    readback_allowed = Column(Text, nullable=True)
+    block_type = Column(Text, nullable=True)
+    block_group = Column(Text, nullable=True)
 
+    @classmethod
     def insert_one(cls, **param):
         # insert dict, store into db
         row = LoopspyTable(**param)
         dbSession.add(row)
         dbSession.commit()
 
+    @classmethod
     def insert_batch(cls, data_list, batch_cnt=100):
         """
         batch insert
@@ -88,7 +93,7 @@ if __name__ == '__main__':
         "SignalNumber": "SignalNumber",
         "VOITHSignalNumber": "VOITHSignalNumber",
         "Area": "Area",
-        "Hierarchy": "Hierarchy"
+        "hierarchy": "Hierarchy"
     }
     row = LoopspyTable(**row)
     dbSession.add(row)

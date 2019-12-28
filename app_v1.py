@@ -1,5 +1,6 @@
 import openpyxl as xl
 from time import sleep, strftime, localtime
+from app.model.loopspy import LoopspyTable
 import datetime
 
 import pandas as pd
@@ -74,32 +75,53 @@ def parse_logic(row_dict, data_mapping=DATA_MAPPING, proc_func=None):
     # condition 3, start with x
     # ignore others
     #
-    # 通过 block 字段判断
 
+
+    block = row_dict.get("block")
+    SignalNumber = "{}.{}".format(row_dict.get("chart"), row_dict.get("block"))
+    Language1 = row_dict.get("block_comment")
+
+    # 入库数据
+    db_item = row_dict
+    db_item["SignalNumber"] = SignalNumber
+    db_item["Language1"] = Language1
+
+    # todo：全部入 sql 库， igonre 的item valid=false
+    # 通过 block 字段判断
     # if first == 'M' and second != 'MO' and second != 'MU' and second != 'MS' and second != 'MA' \
     #        and second != 'MI' and second != 'MM' and second != 'Mo' and second != 'MW':
     # elif first == '0':
-    #
     # elif first == 'X':
     # ignore others
-    # todo：全部入库， igonre 的item valid=false
-    block = row_dict.get("block")
+    valid = False
+    if block.startswith('0') or block.startswith('X'):
+        valid = True
+    elif block.startswith('M'):
+        if len(block) == 1:
+            # 只有一个字母
+            valid = True
+        else:
+            first_two = block[:2]
+            if first_two not in ["MO", "MU", "MS", "MA", "MI", "MM", "Mo", "MW"]:
+                valid = True
 
-    pass
+    db_item["valid"] = valid
+    return db_item, valid
 
 def store_data(db_data):
     # todo: 通用处理， 更具具体逻辑，对应写入表
     pass
 
 
-def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loopspy.xlsx'):
+def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loopspy_v1.xlsx'):
     # in the same folder
 
-
+    c_time = printTime("begin_read")
     read_file = pd.read_csv(inpu_file, encoding=encoding)
+    c_time = printTime("pd.read_csv", c_time)
     read_file.to_excel(out_put_name, index = None, header=True)
     wb = xl.load_workbook(out_put_name)
-
+    c_time = printTime("load pd to excel", c_time)
     # no need to convert csv to xlsx;
     sheet = wb['Sheet1']
     sheet.title = 'CPU21_B'
@@ -133,14 +155,24 @@ def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loo
         cnt += 1
         print("\r[%-100s] %d%%" % ('>' * p, 1 * p), end='')
         sleep(0)
-        parse_logic(rew_dict)
-
+        db_item, valid = parse_logic(rew_dict)
+        # db write
+        LoopspyTable.insert_one(**db_item)
+        if valid:
+            # new sheet
+            row1 = new_sheet.max_row + 1
+            loop_cell = new_sheet.cell(row1, 1)
+            lang1_cell = new_sheet.cell(row1, 4)
+            lang2_cell = new_sheet.cell(row1, 5)
+            loop_cell.value = db_item.get("SignalNumber")
+            lang1_cell.value = db_item.get("block_comment")
+            lang2_cell.value = db_item.get("block_comment")
 
     print("\r")
-
+    c_time = printTime("parse_ready", c_time)
     wb.save(out_put_name)
+    printTime("save to new sheet", c_time)
     print("\r Congralations!The data has been created in a new sheet of Loopspy.xlsx.")
-    sleep(5)
 
 
 # unit test
