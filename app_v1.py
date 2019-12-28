@@ -122,11 +122,10 @@ def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loo
     read_file.to_excel(out_put_name, index = None, header=True)
     wb = xl.load_workbook(out_put_name)
     c_time = printTime("load pd to excel", c_time)
-    # no need to convert csv to xlsx;
+    # 可以直接使用 pandas 读出的数据， 提高效率
     sheet = wb['Sheet1']
     sheet.title = 'CPU21_B'
 
-    # 加一个新 sheet， 表头
     new_sheet = wb.create_sheet('LoopSpy')
     new_sheet.cell(1, 1).value = 'SignalNumber'
     new_sheet.cell(1, 2).value = 'VOITHSignalNumber'
@@ -144,6 +143,7 @@ def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loo
     iter_rows = sheet.iter_rows()
     # 把头读出来不处理
     header_row = next(iter_rows)
+    # 这里可以用来处理 excel 到 内部结构的映射
     ret_data = get_xsl_to_dict(header_row)
     print (json.dumps(ret_data))
 
@@ -157,6 +157,7 @@ def main_logic(inpu_file=r'CPU21_B.csv', encoding=r'cp1252',  out_put_name=r'Loo
         sleep(0)
         db_item, valid = parse_logic(rew_dict)
         # db write
+        # 数据库可以批量写；
         LoopspyTable.insert_one(**db_item)
         if valid:
             # new sheet

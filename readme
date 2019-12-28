@@ -1,6 +1,11 @@
 3be5c6620d0f8d5e7febd919c7e006cc99019586
 
+安装依赖
+1. pip freeze >requirements.txt
+2. pip install -r requirements.txt
 
+本地调试使用mysql，
+使用 access 需要替换底层连接方式
 local mysql, docker: from https://adolphor.com/blog/2019/01/02/manage-mysql-by-docker-of-macos.html
 
 docker pull mysql:5.7
