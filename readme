@@ -1,1 +1,12 @@
 3be5c6620d0f8d5e7febd919c7e006cc99019586
+
+
+local mysql, docker: from https://adolphor.com/blog/2019/01/02/manage-mysql-by-docker-of-macos.html
+
+docker pull mysql:5.7
+sudo docker run --name mysql -p 3301:3306 -e MYSQL_ROOT_PASSWORD=admin -d mysql:5.7
+
+sudo docker inspect mysql
+
+
+127.0.0.1:3301
